@@ -1,3 +1,5 @@
+using DesafioKafkaAPI.Data;
+using DesafioKafkaAPI.Orders;
 
 namespace DesafioKafkaAPI
 {
@@ -13,7 +15,13 @@ namespace DesafioKafkaAPI
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+            builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
             var app = builder.Build();
+
+            // Schema do SQLite: sem migrations, roda uma vez na subida (ver Data/DatabaseInitializer.cs).
+            DatabaseInitializer.EnsureCreated(app.Services.GetRequiredService<IDbConnectionFactory>());
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
