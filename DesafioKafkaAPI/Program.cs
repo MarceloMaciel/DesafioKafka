@@ -1,4 +1,5 @@
 using DesafioKafkaAPI.Data;
+using DesafioKafkaAPI.Messaging;
 using DesafioKafkaAPI.Orders;
 
 namespace DesafioKafkaAPI
@@ -18,15 +19,24 @@ namespace DesafioKafkaAPI
             builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
+            builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
+
             var app = builder.Build();
 
             // Schema do SQLite: sem migrations, roda uma vez na subida (ver Data/DatabaseInitializer.cs).
             DatabaseInitializer.EnsureCreated(app.Services.GetRequiredService<IDbConnectionFactory>());
 
+            // Tópicos Kafka: criação automática na subida (§7.3), em background e tolerante a broker fora do ar.
+            KafkaTopicInitializer.EnsureTopicsCreatedInBackground(app.Configuration, app.Logger);
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/openapi/v1.json", "DesafioKafkaAPI v1");
+                });
             }
 
             app.UseHttpsRedirection();
