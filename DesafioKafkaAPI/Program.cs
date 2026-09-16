@@ -1,3 +1,4 @@
+using DesafioKafkaAPI.Consumers;
 using DesafioKafkaAPI.Data;
 using DesafioKafkaAPI.Messaging;
 using DesafioKafkaAPI.Orders;
@@ -20,6 +21,7 @@ namespace DesafioKafkaAPI
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
             builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
+            builder.Services.AddHostedService<NotificacaoConsumer>();
 
             var app = builder.Build();
 
